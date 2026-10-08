@@ -9,6 +9,7 @@ from brightsync_client import CommandType, build_request
 DEFAULT_STEP = 10
 MIN_HOURS = 1
 MAX_HOURS = 24
+TOGGLE_WORDS = ("auto", "eye", "boost")
 
 USAGE = (
     "<0-100> | up [step] | down [step] | auto on|off | "
@@ -75,6 +76,14 @@ def parse(text):
         return Command("Open BrightSync settings", CommandType.SETTINGS_SHOW)
 
     raise ParseError(f"Unknown command '{head}'. Usage: {USAGE}")
+
+
+def toggle_choices(text):
+    """Return the on and off commands for a bare toggle word (`auto`, `eye`, `boost`), else []."""
+    tokens = text.strip().lower().split()
+    if len(tokens) != 1 or tokens[0] not in TOGGLE_WORDS:
+        return []
+    return [parse(f"{tokens[0]} on"), parse(f"{tokens[0]} off")]
 
 
 def _timed_toggle(name, rest):

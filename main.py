@@ -14,10 +14,17 @@ PLUGIN_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, PLUGIN_DIR)
 
 import brightsync_client as client  # noqa: E402
-from query_parser import ParseError, parse  # noqa: E402
+from query_parser import ParseError, parse, toggle_choices  # noqa: E402
 
 ICON = "icon.png"
 ALLOWED_METHODS = ("query", "run_command", "noop")
+CHANGE_QUERY = "Flow.Launcher.ChangeQuery"
+BRIGHTNESS_TYPES = (
+    client.CommandType.BRIGHTNESS_SET,
+    client.CommandType.BRIGHTNESS_UP,
+    client.CommandType.BRIGHTNESS_DOWN,
+)
+AUTO_BLOCK_SUBTITLE = "Automatic brightness is on, so this will be refused. Turn it off first."
 
 HINTS = [
     ("bs 50", "Set brightness to a value from 0 to 100"),
@@ -45,6 +52,15 @@ def make_result(title, subtitle, method, parameters=None, keep_open=False):
             "dontHideAfterAction": keep_open,
         },
     }
+
+
+def command_row(command, subtitle="Press Enter to run"):
+    return make_result(
+        command.title,
+        subtitle,
+        "run_command",
+        [command.to_request(), command.title],
+    )
 
 
 def format_remaining(seconds):
@@ -76,15 +92,28 @@ def format_status_details(status):
     return " | ".join(parts)
 
 
+def fetch_status():
+    """Return the status dict from BrightSync, or None when it cannot be reached."""
+    try:
+        response = client.call(client.build_request(client.CommandType.STATUS))
+    except client.BrightSyncError:
+        return None
+    return response.get("Status") or None
+
+
 class BrightSyncPlugin:
     def query(self, text=""):
         text = (text or "").strip()
 
         if not text:
             return self._status_results() + [
-                make_result(example, description, "ChangeQuery", [example + " ", False], keep_open=True)
+                make_result(example, description, CHANGE_QUERY, [example + " ", False], keep_open=True)
                 for example, description in HINTS
             ]
+
+        choices = toggle_choices(text)
+        if choices:
+            return [command_row(choice) for choice in choices]
 
         try:
             command = parse(text)
@@ -94,13 +123,20 @@ class BrightSyncPlugin:
         if command.command_type == client.CommandType.STATUS:
             return self._status_results()
 
+        return self._command_results(command)
+
+    def _command_results(self, command):
+        if command.command_type not in BRIGHTNESS_TYPES:
+            return [command_row(command)]
+
+        status = fetch_status()
+        if not status or not status.get("automaticBrightnessEnabled"):
+            return [command_row(command)]
+
+        off = parse("auto off")
         return [
-            make_result(
-                command.title,
-                "Press Enter to run",
-                "run_command",
-                [command.to_request(), command.title],
-            )
+            command_row(command, AUTO_BLOCK_SUBTITLE),
+            command_row(off, "Automatic brightness is on. Press Enter to turn it off, then retype the brightness command."),
         ]
 
     def run_command(self, request, title):

@@ -5,6 +5,7 @@ import os
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 PLUGIN_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PLUGIN_DIR)
@@ -47,7 +48,31 @@ class PluginTests(unittest.TestCase):
         self.assertEqual(rows[0]["Title"], "BrightSync is not running")
         hint_rows = rows[1:]
         self.assertEqual(len(hint_rows), len(main.HINTS))
-        self.assertTrue(all(row["JsonRPCAction"]["method"] == "ChangeQuery" for row in hint_rows))
+        self.assertTrue(all(row["JsonRPCAction"]["method"] == "Flow.Launcher.ChangeQuery" for row in hint_rows))
+
+    def test_bare_auto_offers_on_and_off_rows(self):
+        rows = main.BrightSyncPlugin().query("auto")
+
+        self.assertEqual([row["JsonRPCAction"]["parameters"][0] for row in rows], [
+            {"CommandType": 5, "Enabled": True},
+            {"CommandType": 6, "Enabled": False},
+        ])
+        self.assertTrue(all(row["JsonRPCAction"]["method"] == "run_command" for row in rows))
+
+    def test_brightness_while_auto_on_warns_and_offers_auto_off(self):
+        with mock.patch.object(main, "fetch_status", return_value={"automaticBrightnessEnabled": True}):
+            rows = main.BrightSyncPlugin().query("40")
+
+        self.assertEqual(rows[0]["JsonRPCAction"]["parameters"][0], {"CommandType": 0, "BrightnessValue": 40})
+        self.assertIn("refused", rows[0]["SubTitle"])
+        self.assertEqual(rows[1]["JsonRPCAction"]["parameters"][0], {"CommandType": 6, "Enabled": False})
+
+    def test_brightness_while_auto_off_has_no_warning(self):
+        with mock.patch.object(main, "fetch_status", return_value={"automaticBrightnessEnabled": False}):
+            rows = main.BrightSyncPlugin().query("40")
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["SubTitle"], "Press Enter to run")
 
     def test_run_command_reports_not_running_via_show_msg(self):
         buffer = io.StringIO()

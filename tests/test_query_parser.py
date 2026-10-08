@@ -6,7 +6,7 @@ PLUGIN_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PLUGIN_DIR)
 
 from brightsync_client import CommandType  # noqa: E402
-from query_parser import DEFAULT_STEP, ParseError, parse  # noqa: E402
+from query_parser import DEFAULT_STEP, ParseError, parse, toggle_choices  # noqa: E402
 
 
 class ParseTests(unittest.TestCase):
@@ -46,6 +46,12 @@ class ParseTests(unittest.TestCase):
         self.assertEqual(parse("auto off").to_request(), {"CommandType": 6, "Enabled": False})
         with self.assertRaises(ParseError):
             parse("auto")
+
+    def test_toggle_choices_for_bare_words(self):
+        self.assertEqual([c.to_request() for c in toggle_choices("eye")],
+                         [{"CommandType": 7, "Enabled": True}, {"CommandType": 8, "Enabled": False}])
+        self.assertEqual(toggle_choices("auto on"), [])
+        self.assertEqual(toggle_choices("40"), [])
 
     def test_eye_protection_optional_hours(self):
         self.assertEqual(parse("eye on").to_request(), {"CommandType": 7, "Enabled": True})
