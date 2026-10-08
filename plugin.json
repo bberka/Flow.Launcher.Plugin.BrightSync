@@ -1,0 +1,12 @@
+{
+    "ID": "F55EA313-2F2F-43F9-A011-46A4A0BF54CB",
+    "ActionKeyword": "bs",
+    "Name": "BrightSync",
+    "Description": "Control BrightSync brightness, automatic mode, eye protection and boost through its local command API.",
+    "Author": "bberka",
+    "Version": "0.1.0",
+    "Language": "python",
+    "Website": "https://github.com/bberka/Flow.Launcher.Plugin.BrightSync",
+    "IcoPath": "icon.png",
+    "ExecuteFileName": "main.py"
+}
