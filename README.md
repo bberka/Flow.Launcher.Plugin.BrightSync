@@ -5,7 +5,8 @@ command API of the running BrightSync tray app on `127.0.0.1`.
 
 ## Requirements
 
-- Windows, Flow Launcher 2.x, BrightSync running (the resident tray app).
+- Windows, Flow Launcher 2.x.
+- **BrightSync installed and running** (the resident tray app). Get it at https://github.com/bberka/BrightSync. This plugin only talks to that app; it does not control brightness on its own.
 - Python 3 on the path Flow Launcher uses. Standard library only, no pip packages.
 
 ## Commands

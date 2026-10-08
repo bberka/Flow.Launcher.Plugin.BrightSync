@@ -2,7 +2,7 @@
     "ID": "F55EA313-2F2F-43F9-A011-46A4A0BF54CB",
     "ActionKeyword": "bs",
     "Name": "BrightSync",
-    "Description": "Control all your monitors brightness with BrightSync, automatic mode, eye protection and boost through its local command API.",
+    "Description": "Control BrightSync from Flow Launcher: brightness, automatic mode, eye protection and boost. Requires the BrightSync app running. Get it at https://github.com/bberka/BrightSync",
     "Author": "bberka",
     "Version": "0.1.0",
     "Language": "python",
