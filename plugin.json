@@ -4,7 +4,7 @@
     "Name": "BrightSync",
     "Description": "Control BrightSync from Flow Launcher: brightness, automatic mode, eye protection and boost. Requires the BrightSync app running. Get it at https://github.com/bberka/BrightSync",
     "Author": "bberka",
-    "Version": "0.1.0",
+    "Version": "0.1.1",
     "Language": "python",
     "Website": "https://github.com/bberka/Flow.Launcher.Plugin.BrightSync",
     "IcoPath": "icon.png",
